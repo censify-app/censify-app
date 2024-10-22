@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Censify - Цензура аудио</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
+</head>
+<body class="dark-theme">
+    <nav class="deep-purple darken-3">
+        <div class="nav-wrapper container">
+            <a href="/" class="brand-logo">Censify</a>
+            <ul class="right">
+                <li>
+                    <a href="#" id="themeToggle">
+                        <i class="material-icons">brightness_4</i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="history-toggle">
+            <button id="historyToggle" class="btn-floating">
+                <i class="material-icons">history</i>
+            </button>
+        </div>
+        
+        <div class="main-layout">
+            <div class="history-sidebar" id="historySidebar">
+                <div class="history-header">
+                    <h5>История</h5>
+                </div>
+                <ul class="collection" id="historyList"></ul>
+            </div>
+            
+            <div class="main-content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

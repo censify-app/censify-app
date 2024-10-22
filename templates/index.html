@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col s12">
+        <div class="card-panel">
+            <h4 class="center-align">Censify YouTube</h4>
+            
+            <div class="row">
+                <div class="input-field col s10">
+                    <i class="material-icons prefix">search</i>
+                    <input type="text" id="search" class="validate">
+                    <label for="search">Поиск песни или URL YouTube</label>
+                </div>
+                <div class="col s2" style="padding-top: 20px;">
+                    <button class="btn waves-effect waves-light deep-purple" id="findBtn">
+                        <i class="material-icons">search</i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="row" id="searchResults" style="display: none;">
+                <div class="col s12">
+                    <div class="input-field">
+                        <select id="videoSelect">
+                            <option value="" disabled selected>Выберите видео</option>
+                        </select>
+                        <label>Найденные видео</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="options" style="display: none;">
+                <div class="col s12">
+                    <h5>Настройки цензуры</h5>
+                    
+                    <div class="censorship-section">
+                        <div class="section-title">Слова для цензуры</div>
+                        <div class="section-description">
+                            Введите слова, которые нужно вырезать из аудио. Каждое слово добавляется по нажатию Enter.
+                        </div>
+                        
+                        <div class="input-field">
+                            <textarea id="customWords" class="materialize-textarea" placeholder="Введите слово и нажмите Enter"></textarea>
+                        </div>
+                        
+                        <div id="customWordsTags">
+                            <div class="words-empty-state">
+                                <i class="material-icons">info</i>
+                                Вы еще не добавили ни одного слова в фильтр
+                            </div>
+                        </div>
+
+                        <div class="censorship-controls">
+                            <div class="censorship-type-title">Тип цензуры</div>
+                            <div class="switch">
+                                <label>
+                                    <span>Тишина</span>
+                                    <input type="checkbox" id="useBeep" checked>
+                                    <span class="lever"></span>
+                                    <span>Гудок</span>
+                                </label>
+                            </div>
+                            
+                            <div id="frequencySlider" class="frequency-slider"></div>
+                            <div class="input-field">
+                                <input type="number" id="beepFrequency" value="1000" min="500" max="2000" step="100">
+                                <span class="helper-text">Частота гудка (Гц)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-large waves-effect waves-light" id="processBtn">
+                        Обработать
+                        <i class="material-icons right">send</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="progressModal" class="modal">
+    <div class="modal-content">
+        <h4>Обработка...</h4>
+        <div class="progress">
+            <div class="indeterminate"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row" id="searchProgress" style="display: none;">
+    <div class="col s12 center-align">
+        <div class="preloader-wrapper small active">
+            <div class="spinner-layer spinner-purple-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                    <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+        <p>Ищем песни...</p>
+    </div>
+</div>
+{% endblock %}

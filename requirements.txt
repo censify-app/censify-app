@@ -1,0 +1,6 @@
+flask
+flask-material
+yt-dlp
+youtube-search-python
+requests
+monkeyplug
