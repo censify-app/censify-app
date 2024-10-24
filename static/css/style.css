@@ -1,0 +1,756 @@
+:root {
+    --md-sys-color-primary: #7B61B0;
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-primary-container: #F2EAFF;
+    --md-sys-color-on-primary-container: #2D1F47;
+    --md-sys-color-surface: #FAF9FD;
+    --md-sys-color-on-surface: #1D1B20;
+    --md-sys-color-surface-container: #FFFFFF;
+    --md-sys-color-outline: #79747E;
+    --md-sys-color-surface-variant: #E7E0EC;
+    --md-sys-color-on-surface-variant: #49454F;
+}
+
+.dark-theme {
+    --md-sys-color-primary: #C8B6FF;
+    --md-sys-color-on-primary: #381E72;
+    --md-sys-color-primary-container: #4F378B;
+    --md-sys-color-on-primary-container: #EADDFF;
+    --md-sys-color-surface: #141218;
+    --md-sys-color-on-surface: #E6E1E5;
+    --md-sys-color-surface-container: #1D1B20;
+    --md-sys-color-outline: #938F99;
+    --md-sys-color-surface-variant: #49454F;
+    --md-sys-color-on-surface-variant: #CAC4D0;
+}
+
+body {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+}
+
+.card-panel {
+    background-color: var(--md-sys-color-surface-container);
+    border-radius: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    padding: 24px;
+}
+
+.btn {
+    border-radius: 20px;
+    text-transform: none;
+    font-weight: 500;
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+.btn-floating {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+.censorship-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    padding: 8px 16px;
+    border-radius: 8px;
+    margin: 4px;
+    transform-origin: center;
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.censorship-tag .close {
+    margin-left: 8px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.censorship-tag .close:hover {
+    opacity: 1;
+}
+
+.censorship-tag:hover {
+    transform: scale(1.05);
+}
+
+@keyframes tagAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#customWordsTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    margin-bottom: 32px;  /* Увеличенный отступ снизу */
+    padding-bottom: 16px; /* Дополнительный отступ */
+    border-bottom: 1px solid var(--md-sys-color-outline);
+}
+
+/* Обновляем стили для элементов управления частотой */
+.frequency-control {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background-color: var(--md-sys-color-surface-variant);
+    border-radius: 28px;
+    margin-top: 16px;
+}
+
+.frequency-control .input-field {
+    width: 80px;
+    margin: 0;
+}
+
+#beepFrequency {
+    height: 36px;
+    margin: 0;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.valign-wrapper {
+    margin-bottom: 20px;
+}
+
+.flow-text {
+    font-size: 1.2rem;
+}
+
+/* История */
+.history-panel {
+    position: sticky;
+    top: 20px;
+}
+
+.history-item {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px !important;
+    background-color: var(--md-sys-color-surface-container) !important;
+    border-bottom: 1px solid var(--md-sys-color-outline) !important;
+}
+
+.history-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.history-item.pending {
+    background-color: var(--md-sys-color-primary-container) !important;
+}
+
+.history-item.cancelled {
+    background-color: var(--md-sys-color-surface-variant) !important;
+}
+
+.history-content {
+    flex-grow: 1;
+    margin-right: 15px;
+    overflow: hidden;
+}
+
+.history-content .title {
+    display: block;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.history-content small {
+    display: block;
+    margin-top: 5px;
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.download-btn {
+    flex-shrink: 0;
+}
+
+.dark-theme .history-item.pending {
+    background-color: rgba(103, 58, 183, 0.2);
+}
+
+.dark-theme .history-item.cancelled {
+    background-color: rgba(244, 67, 54, 0.2);
+}
+
+.frequency-control .btn-floating {
+    transform: scale(0.8);
+    height: 36px;
+    width: 36px;
+    line-height: 36px;
+}
+
+.frequency-control .btn-floating i {
+    line-height: 36px;
+}
+
+/* Анимации и переходы */
+.card-panel, .btn, .input-field input, 
+.dropdown-content, .select-dropdown {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Стили для выпадающих списков */
+.select-dropdown,
+.dropdown-content {
+    background-color: var(--md-sys-color-surface-container) !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.select-dropdown li span,
+.dropdown-content li span {
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.select-dropdown li:hover,
+.dropdown-content li:hover {
+    background-color: var(--md-sys-color-surface-variant) !important;
+}
+
+/* Обновленные стили для текстовых полей */
+.input-field input,
+.input-field textarea {
+    color: var(--md-sys-color-on-surface) !important;
+    border-bottom-color: var(--md-sys-color-outline) !important;
+}
+
+.input-field input:focus,
+.input-field textarea:focus {
+    border-bottom-color: var(--md-sys-color-primary) !important;
+    box-shadow: 0 1px 0 0 var(--md-sys-color-primary) !important;
+}
+
+/* Стили для переключателя темы */
+#themeToggle {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#themeToggle:hover {
+    transform: rotate(30deg);
+}
+
+/* Стили для nouislider */
+.noUi-connect {
+    background: var(--md-sys-color-primary);
+}
+
+.noUi-handle {
+    border-radius: 50%;
+    background: var(--md-sys-color-primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.noUi-handle:after,
+.noUi-handle:before {
+    display: none;
+}
+
+/* Стили для переключателя */
+.switch-custom {
+    position: relative;
+    display: inline-block;
+    width: 160px;
+    height: 44px;
+}
+
+.switch-custom input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider-custom {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--md-sys-color-surface-variant);
+    transition: 0.4s;
+    border-radius: 22px;
+    padding: 4px;
+}
+
+.slider-custom:before {
+    position: absolute;
+    content: "Тишина";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 76px;
+    border-radius: 18px;
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    transition: 0.4s;
+}
+
+input:checked + .slider-custom:before {
+    transform: translateX(76px);
+    content: "Гудок";
+}
+
+/* Ускоряем все базовые анимации */
+.card-panel, .btn, .input-field input, 
+.dropdown-content, .select-dropdown {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.censorship-tag {
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#options {
+    transition: opacity 0.15s ease-in-out;
+}
+
+/* Стили для слайдера */
+.frequency-slider {
+    flex-grow: 1;
+    height: 48px;
+    padding: 0 20px;
+    min-width: 200px;
+}
+
+.noUi-target {
+    height: 4px;
+    border: none;
+    background-color: var(--md-sys-color-outline);
+    box-shadow: none;
+}
+
+.noUi-connect {
+    background: var(--md-sys-color-primary);
+}
+
+.noUi-handle {
+    width: 20px !important;
+    height: 20px !important;
+    right: -10px !important;
+    top: -8px !important;
+    border-radius: 50%;
+    background: var(--md-sys-color-primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.noUi-handle:hover {
+    transform: scale(1.1);
+}
+
+/* Стси для переклчтеля */
+.switch label {
+    font-size: 1rem;
+}
+
+.switch label input[type=checkbox]:checked+.lever {
+    background-color: var(--md-sys-color-primary-container);
+}
+
+.switch label input[type=checkbox]:checked+.lever:after {
+    background-color: var(--md-sys-color-primary);
+}
+
+.switch label .lever {
+    width: 48px;
+    height: 24px;
+}
+
+.switch label .lever:after {
+    width: 20px;
+    height: 20px;
+    top: 2px;
+}
+
+/* Кнопка обработки */
+#processBtn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    height: 56px;
+    padding: 0 32px;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border-radius: 28px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background-color: var(--md-sys-color-primary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#processBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+#processBtn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+#processBtn i {
+    margin-left: 8px;
+}
+
+.censorship-section {
+    margin-top: 32px;
+    padding: 24px;
+    background-color: var(--md-sys-color-surface-container);
+    border-radius: 16px;
+}
+
+.censorship-section .section-title {
+    font-size: 1.2rem;
+    color: var(--md-sys-color-on-surface);
+    margin-bottom: 8px;
+}
+
+.censorship-section .section-description {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+}
+
+.words-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-surface-variant);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    margin: 16px 0;
+}
+
+.words-empty-state i {
+    margin-right: 8px;
+    font-size: 20px;
+}
+
+.censorship-controls {
+    background-color: var(--md-sys-color-surface-variant);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 24px;
+}
+
+.censorship-type-title {
+    font-size: 1rem;
+    color: var(--md-sys-color-on-surface);
+    margin-bottom: 16px;
+}
+
+.switch {
+    margin-bottom: 32px;  /* Добавляем отступ после переключтеля */
+}
+
+/* Делаем переключатель более заметным */
+.switch label input[type=checkbox]:checked+.lever {
+    background-color: var(--md-sys-color-primary-container);
+}
+
+.switch label input[type=checkbox]:checked+.lever:after {
+    background-color: var(--md-sys-color-primary);
+}
+
+/* Стили для слайдера */
+.noUi-target {
+    background-color: var(--md-sys-color-outline);
+    border: none;
+}
+
+.noUi-connect {
+    background-color: var(--md-sys-color-primary);
+}
+
+.noUi-handle {
+    background-color: var(--md-sys-color-primary);
+    border: 2px solid var(--md-sys-color-surface);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Стили для числового поля */
+.frequency-control .input-field input[type=number] {
+    background-color: var(--md-sys-color-surface-variant);
+    border: none;
+    border-radius: 8px;
+    padding: 0 8px;
+    width: 80px;
+    color: var(--md-sys-color-on-surface);
+}
+
+/* Убираем стрелки у числового поля */
+.frequency-control .input-field input[type=number]::-webkit-inner-spin-button, 
+.frequency-control .input-field input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Кнопка обработать */
+#processBtn {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    font-weight: 500;
+    padding: 0 32px;
+    height: 56px;
+    line-height: 56px;
+    border-radius: 28px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#processBtn:hover {
+    background-color: var(--md-sys-color-primary);
+    filter: brightness(1.1);
+}
+
+.main-layout {
+    position: relative;
+    max-width: 100%;
+    min-height: calc(100vh - 64px);
+    padding: 16px;
+}
+
+.main-content {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    z-index: 1;
+}
+
+.history-sidebar {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    width: 320px;
+    background: var(--md-sys-color-surface-variant) !important;
+    border-radius: 0 16px 16px 0;
+    height: calc(100vh - 64px);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.history-sidebar.visible {
+    transform: translateX(0);
+}
+
+.history-toggle {
+    position: fixed;
+    left: 20px;
+    top: 80px;
+    z-index: 3;
+    width: 40px; /* Фиксированная ширина */
+    height: 40px; /* Фиксированная высота */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-toggle .btn-floating {
+    width: 100%;
+    height: 100%;
+}
+
+.history-header {
+    position: relative;
+    padding: 16px;
+    background: var(--md-sys-color-surface-container) !important;
+    z-index: 2;
+    border-radius: 0 16px 0 0;
+    border-bottom: 1px solid var(--md-sys-color-outline);
+    margin-top: 60px; /* Отступ под кнопку */
+}
+
+.history-header h5 {
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: 1.2rem;
+}
+
+.collection {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.collection .collection-item {
+    border-bottom: 1px solid var(--md-sys-color-outline) !important;
+}
+
+.collection .collection-item:last-child {
+    border-bottom: none !important;
+}
+
+/* Стилизация скроллбара */
+.collection::-webkit-scrollbar {
+    width: 8px;
+}
+
+.collection::-webkit-scrollbar-track {
+    background: var(--md-sys-color-surface);
+}
+
+.collection::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-outline);
+    border-radius: 4px;
+}
+
+.collection::-webkit-scrollbar-thumb:hover {
+    background: var(--md-sys-color-primary);
+}
+
+.collection .collection-item:first-child {
+    border-top: none !important;
+}
+
+.collection .collection-item:last-child {
+    border-bottom: none !important;
+    border-radius: 0 0 16px 0;
+}
+
+.collection:empty {
+    display: none; /* Скрываем пустой список */
+}
+
+.history-header h5 {
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+}
+
+/* Делаем элементы более компактными */
+.censorship-section {
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.censorship-controls {
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.section-title {
+    margin-bottom: 4px;
+}
+
+.section-description {
+    margin-bottom: 12px;
+}
+
+.words-empty-state {
+    padding: 24px;
+    margin: 12px 0;
+}
+
+/* Уменьшаем отступы у основного контента для компактности */
+.card-panel {
+    padding: 20px;
+    margin: 0.5rem 0;
+}
+
+/* Убираем лишние отступы у заголовка */
+h4.center-align {
+    margin: 0 0 20px 0;
+}
+
+/* Стили для модального окна обработки */
+.modal {
+    background-color: var(--md-sys-color-surface-container) !important;
+    color: var(--md-sys-color-on-surface) !important;
+    border-radius: 28px !important;
+    max-width: 400px !important;
+}
+
+.modal .modal-content {
+    padding: 24px;
+}
+
+.modal h4 {
+    font-size: 1.4rem;
+    margin: 0 0 16px 0;
+    text-align: center;
+}
+
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px);
+}
+
+.modal .progress {
+    background-color: var(--md-sys-color-surface-variant);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.modal .progress .indeterminate {
+    background-color: var(--md-sys-color-primary);
+}
+
+.dark-theme .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.dark-theme .modal {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Обновляем стили для коллекции */
+.collection {
+    border: none !important;
+    margin: 0 !important;
+}
+
+.collection .collection-item {
+    background-color: var(--md-sys-color-surface-container) !important;
+    border-bottom: 1px solid var(--md-sys-color-outline) !important;
+}
+
+/* Обновляем цвета текста */
+.history-content .title {
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.history-content small {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+/* Стили для боковой панели истории */
+.history-sidebar {
+    background-color: var(--md-sys-color-surface) !important;
+}
+
+.history-header {
+    background-color: var(--md-sys-color-surface-container) !important;
+    color: var(--md-sys-color-on-surface) !important;
+    padding: 16px;
+    border-bottom: 1px solid var(--md-sys-color-outline);
+}
+
+.dark-theme .history-sidebar {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
