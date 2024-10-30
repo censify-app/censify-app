@@ -20,6 +20,9 @@ def search():
     
     try:
         results = downloader.search_videos(query, limit=5)
+        # Добавляем URL превью к каждому результату
+        for result in results:
+            result['thumbnail'] = result['thumbnails'][0]['url']
         return jsonify({'success': True, 'results': results})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

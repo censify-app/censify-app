@@ -228,7 +228,10 @@ document.addEventListener('DOMContentLoaded', function() {
         results.forEach(video => {
             const option = document.createElement('option');
             option.value = video.link;
-            option.innerHTML = `${video.title} (${video.duration}) - ${video.channel.name}`;
+            option.innerHTML = `
+                <img src="${video.thumbnail}" alt="thumbnail" style="width: 50px; height: auto; vertical-align: middle; margin-right: 10px;">
+                ${video.title} (${video.duration}) - ${video.channel.name}
+            `;
             videoSelect.appendChild(option);
         });
         
