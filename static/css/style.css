@@ -754,3 +754,107 @@ h4.center-align {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.selected-files-list {
+    margin-top: 20px;
+    text-align: left;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.file-list-header {
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 4px 0;
+    background: rgba(103, 58, 183, 0.05);
+    border-radius: 4px;
+}
+
+.file-item i {
+    margin-right: 8px;
+    color: #673ab7;
+}
+
+.file-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-size {
+    margin-left: 8px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.dark-theme .file-list-header {
+    color: #aaa;
+}
+
+.dark-theme .file-item {
+    background: rgba(103, 58, 183, 0.1);
+}
+
+.dark-theme .file-size {
+    color: #999;
+}
+
+.file-list-empty {
+    text-align: center;
+    color: var(--md-sys-color-on-surface-variant);
+    padding: 16px;
+}
+
+.file-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    color: var(--md-sys-color-on-surface);
+}
+
+.add-more-btn {
+    padding: 0 8px;
+    color: var(--md-sys-color-primary);
+}
+
+.add-more-btn i {
+    font-size: 20px;
+    vertical-align: middle;
+}
+
+.remove-file-btn {
+    padding: 0 8px;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.remove-file-btn:hover {
+    color: #f44336;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 4px 0;
+    background: var(--md-sys-color-surface-variant);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.file-item:hover {
+    background: var(--md-sys-color-primary-container);
+}
+
+.dark-theme .file-item:hover {
+    background: rgba(103, 58, 183, 0.2);
+}
+

@@ -15,14 +15,78 @@ document.addEventListener('DOMContentLoaded', function() {
     const customWordsTags = document.getElementById('customWordsTags');
     const historyToggle = document.getElementById('historyToggle');
     const historySidebar = document.getElementById('historySidebar');
+    const sourceToggle = document.getElementById('sourceToggle');
+    const chooseFilesBtn = document.querySelector('[tag="chooseFilesBtn"]');
+    const youtubeSearch = document.querySelector('[tag="youtubeSearch"]');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    
+    let selectedFiles = new Set(); // Для хранения выбранных файлов
+    
+    // Обработчик переключения источника
+    sourceToggle.addEventListener('change', function() {
+        if (this.checked) {
+            // YouTube выбран
+            chooseFilesBtn.style.display = 'none';
+            youtubeSearch.style.display = 'block';
+            options.style.display = 'none';
+        } else {
+            // Загрузка файла выбрана
+            chooseFilesBtn.style.display = 'block';
+            youtubeSearch.style.display = 'none';
+        }
+    });
+
+    // Инициализация начального состояния
+    if (sourceToggle.checked) {
+        chooseFilesBtn.style.display = 'none';
+        youtubeSearch.style.display = 'block';
+        options.style.display = 'none';
+    } else {
+        chooseFilesBtn.style.display = 'block';
+        youtubeSearch.style.display = 'none';
+    }
+
+    // Обработчик нажатия кнопки "Выбрать файлы"
+    uploadBtn.addEventListener('click', function() {
+        selectedFiles.clear(); // Очищаем список файлов перед новым выбором
+        fileInput.value = ''; // Очищаем input чтобы можно было выбрать те же файлы снова
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            // Если это новый выбор (не добавление), очищаем предыдущие файлы
+            if (this.dataset.action !== 'add') {
+                selectedFiles.clear();
+            }
+            
+            // Добавляем файлы
+            Array.from(this.files).forEach(file => {
+                selectedFiles.add(file);
+            });
+            
+            updateSelectedFilesUI();
+            
+            // Показываем секцию с опциями
+            options.style.display = 'block';
+            options.style.opacity = '0';
+            requestAnimationFrame(() => {
+                options.style.opacity = '1';
+            });
+
+            // Сбрасываем флаг действия
+            this.dataset.action = '';
+        }
+    });
     
     // Инициализация компонентов Material
     M.Modal.init(document.querySelectorAll('.modal'), {
-        dismissible: false, // Запрещаем закрытие по клику вне окна
-        opacity: 0.5, // Прозрачность оверлея
-        inDuration: 200, // Скорость появления
-        outDuration: 200, // Скорость исчезновения
-        preventScrolling: true // Запрещаем прокрутку страницы
+        dismissible: false,
+        opacity: 0.5,
+        inDuration: 200,
+        outDuration: 200,
+        preventScrolling: true
     });
     M.updateTextFields();
     M.FormSelect.init(document.querySelectorAll('select'));
@@ -269,6 +333,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         customWordsTags.appendChild(tag);
+    }
+    
+    function updateSelectedFilesUI() {
+        const selectedFilesDiv = document.getElementById('selectedFiles');
+        
+        if (selectedFiles.size === 0) {
+            selectedFilesDiv.innerHTML = '<div class="file-list-empty">Файлы не выбраны</div>';
+            return;
+        }
+        
+        selectedFilesDiv.innerHTML = `
+            <div class="file-list-header">
+                Выбранные файлы
+                <button class="btn-flat waves-effect add-more-btn">
+                    <i class="material-icons">add</i> Добавить ещё
+                </button>
+            </div>
+        `;
+        
+        Array.from(selectedFiles).forEach(file => {
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2); // Размер в МБ
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'file-item';
+            fileDiv.innerHTML = `
+                <i class="material-icons">audio_file</i>
+                <span class="file-name">${file.name}</span>
+                <span class="file-size">${fileSize} МБ</span>
+                <button class="btn-flat waves-effect remove-file-btn" data-filename="${file.name}">
+                    <i class="material-icons">close</i>
+                </button>
+            `;
+            selectedFilesDiv.appendChild(fileDiv);
+        });
+        
+        // Добавляем обработчики для кнопок
+        selectedFilesDiv.querySelectorAll('.remove-file-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const filename = this.dataset.filename;
+                Array.from(selectedFiles).forEach(file => {
+                    if (file.name === filename) {
+                        selectedFiles.delete(file);
+                    }
+                });
+                updateSelectedFilesUI();
+                
+                // Скрываем опции, если файлов не осталось
+                if (selectedFiles.size === 0) {
+                    options.style.display = 'none';
+                }
+            });
+        });
+        
+        selectedFilesDiv.querySelector('.add-more-btn')?.addEventListener('click', () => {
+            fileInput.dataset.action = 'add'; // Устанавливаем флаг, что это добавление
+            fileInput.value = ''; // Очищаем input чтобы можно было выбрать те же файлы снова
+            fileInput.click();
+        });
     }
     
     updateHistoryUI();
