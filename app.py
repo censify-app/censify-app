@@ -4,6 +4,7 @@ import os
 import json
 from task_queue import task_queue
 import threading
+import hashlib
 
 app = Flask(__name__)
 
@@ -33,8 +34,13 @@ def process_audio_task(video_url, custom_words, use_beep, beep_frequency, output
             
         # Формирование имени выходного файла
         safe_filename = "".join(c for c in os.path.basename(audio_file) if c.isalnum() or c in (' ', '-', '_'))
+        
+        # Создаем уникальный хэш на основе параметров обработки
+        params_str = f"{','.join(sorted(custom_words))}-{use_beep}-{beep_frequency}"
+        params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
+        
         prefix = 'cb{}_'.format(beep_frequency) if use_beep else 'cs_'
-        output_file = os.path.join(output_dir, f"{prefix}{safe_filename}")
+        output_file = os.path.join(output_dir, f"{prefix}{safe_filename}_{params_hash}")
         if not output_file.lower().endswith('.mp3'):
             output_file += '.mp3'
             
