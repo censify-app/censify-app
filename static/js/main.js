@@ -174,14 +174,11 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            modal.close();
             if (data.success) {
-                historyItem.filename = data.file;
-                historyItem.status = 'success';
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-                updateHistoryUI();
-                window.location.href = `/download/${data.file}`;
+                // Начинаем опрос статуса задачи
+                pollTaskStatus(data.task_id, historyItem, modal);
             } else {
+                modal.close();
                 historyItem.status = 'cancelled';
                 updateHistoryUI();
                 M.toast({html: `Ошибка: ${data.error}`});
@@ -194,7 +191,49 @@ document.addEventListener('DOMContentLoaded', function() {
             M.toast({html: 'Произошла ошибка при обработке'});
         });
     });
-    
+
+    function pollTaskStatus(taskId, historyItem, modal) {
+        fetch(`/task/${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.state === 'DOWNLOADING') {
+                        modal.el.querySelector('h4').textContent = 'Скачивание...';
+                    } else if (data.state === 'LOADING_WORDS') {
+                        modal.el.querySelector('h4').textContent = 'Загрузка слов...';
+                    } else if (data.state === 'CENSORING') {
+                        modal.el.querySelector('h4').textContent = 'Цензурирование...';
+                    } else if (data.state === 'CLEANING') {
+                        modal.el.querySelector('h4').textContent = 'Завершение...';
+                    }
+                    
+                    if (data.file) {
+                        // Задача завершена
+                        modal.close();
+                        historyItem.filename = data.file;
+                        historyItem.status = 'success';
+                        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                        updateHistoryUI();
+                        window.location.href = `/download/${data.file}`;
+                    } else {
+                        // Продолжаем опрос
+                        setTimeout(() => pollTaskStatus(taskId, historyItem, modal), 1000);
+                    }
+                } else {
+                    modal.close();
+                    historyItem.status = 'cancelled';
+                    updateHistoryUI();
+                    M.toast({html: `Ошибка: ${data.error}`});
+                }
+            })
+            .catch(error => {
+                modal.close();
+                historyItem.status = 'cancelled';
+                updateHistoryUI();
+                M.toast({html: 'Произошла ошибка при проверке статуса'});
+            });
+    }
+
     // Вспомогательные функции
     function searchVideos(query) {
         fetch('/search', {
