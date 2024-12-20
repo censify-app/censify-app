@@ -23,6 +23,9 @@ class Censor:
         """
         temp_swears = None
         try:
+            if not output_file.lower().endswith('.mp3'):
+                output_file = f"{output_file}.mp3"
+                
             temp_swears = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8')
             ascii_words = [word for word in censor_words if all(ord(c) < 128 for c in word)]
             temp_swears.write('\n'.join(ascii_words))
@@ -32,7 +35,7 @@ class Censor:
             cmd = [
                 'monkeyplug',
                 '-i', audio_file,
-                '-o', output_file,  # output_file уже содержит расширение .mp3
+                '-o', output_file,
                 '-w', temp_swears.name,
             ]
             
@@ -52,12 +55,4 @@ class Censor:
             
         finally:
             if temp_swears and os.path.exists(temp_swears.name):
-                try:
-                    os.unlink(temp_swears.name)
-                except PermissionError:
-                    import time
-                    time.sleep(0.1)
-                    try:
-                        os.unlink(temp_swears.name)
-                    except PermissionError:
-                        print(f"Предупреждение: Не удалось удалить временный файл {temp_swears.name}")
+                os.remove(temp_swears.name)
