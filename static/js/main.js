@@ -151,22 +151,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const modal = M.Modal.getInstance(progressModal);
         modal.open();
         
-        const formData = new FormData();
-        if (currentFile) {
-            formData.append('file', currentFile);
-        } else {
-            formData.append('video_url', videoSelect.value);
-        }
+        let requestData;
+        let headers = {};
         
-        formData.append('custom_words', JSON.stringify(Array.from(censorWords)));
-        formData.append('use_beep', document.getElementById('useBeep').checked);
-        formData.append('beep_frequency', beepFrequency.value);
+        if (currentFile) {
+            // Для файлов используем FormData
+            requestData = new FormData();
+            requestData.append('file', currentFile);
+            requestData.append('custom_words', JSON.stringify(Array.from(censorWords)));
+            requestData.append('use_beep', document.getElementById('useBeep').checked);
+            requestData.append('beep_frequency', beepFrequency.value);
+        } else {
+            // Для YouTube используем JSON
+            headers = {
+                'Content-Type': 'application/json'
+            };
+            requestData = JSON.stringify({
+                video_url: videoSelect.value,
+                custom_words: Array.from(censorWords),
+                use_beep: document.getElementById('useBeep').checked,
+                beep_frequency: parseInt(beepFrequency.value)
+            });
+        }
         
         const endpoint = currentFile ? '/process_file' : '/process';
         
         fetch(endpoint, {
             method: 'POST',
-            body: formData
+            headers: headers,
+            body: requestData
         })
         .then(response => response.json())
         .then(data => {
@@ -185,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             modal.close();
             M.toast({html: 'Произошла ошибка при обработке'});
+            console.error(error);
         });
     });
 
@@ -502,7 +516,7 @@ document.addEventListener('click', (e) => {
     if (historySidebar.classList.contains('visible') && 
         !historySidebar.contains(e.target) && 
         !historyToggle.contains(e.target) &&
-        !e.target.closest('.btn-floating')) { // Игнорируем клики по кнопкам
+        !e.target.closest('.btn-floating')) { // Игнорируем клики по кнопк��м
         historySidebar.classList.remove('visible');
         historyToggle.querySelector('i').textContent = 'history';
     }
