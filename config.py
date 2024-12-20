@@ -1,9 +1,11 @@
 import os
 import torch
+from pathlib import Path
 
 class Config:
     # Базовые настройки
-    SONGS_DIR = os.path.join(os.path.dirname(__file__), 'songs')
+    BASE_DIR = Path(__file__).parent
+    SONGS_DIR = BASE_DIR / 'songs'
     
     # Настройки обработки аудио
     USE_GPU = False
@@ -25,4 +27,4 @@ class Config:
     @classmethod
     def init_dirs(cls):
         """Инициализация необходимых директорий"""
-        os.makedirs(cls.SONGS_DIR, exist_ok=True) 
+        cls.SONGS_DIR.mkdir(exist_ok=True)

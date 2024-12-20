@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const customWordsTags = document.getElementById('customWordsTags');
     const historyToggle = document.getElementById('historyToggle');
     const historySidebar = document.getElementById('historySidebar');
+    const commonOptions = document.getElementById('commonOptions');
     
-    // Инициализация компонентов Material
+    // Инициализация компонентв Material
     M.Modal.init(document.querySelectorAll('.modal'), {
         dismissible: false, // Запрещаем закрытие по клику вне окна
         opacity: 0.5, // Прозрачность оверлея
@@ -92,12 +93,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Показ опций при выборе видео
     if (videoSelect) {
         videoSelect.addEventListener('change', function() {
-            if (this.value && options) {
-                options.style.display = 'block';
-                options.style.opacity = '0';
-                requestAnimationFrame(() => {
-                    options.style.opacity = '1';
-                });
+            if (this.value) {
+                showOptions();
             }
         });
     }
@@ -154,40 +151,39 @@ document.addEventListener('DOMContentLoaded', function() {
         const modal = M.Modal.getInstance(progressModal);
         modal.open();
         
-        const data = {
-            video_url: videoSelect.value,
-            custom_words: Array.from(censorWords),
-            use_beep: document.getElementById('useBeep').checked,
-            beep_frequency: parseInt(beepFrequency.value)
-        };
+        const formData = new FormData();
+        if (currentFile) {
+            formData.append('file', currentFile);
+        } else {
+            formData.append('video_url', videoSelect.value);
+        }
         
-        const historyItem = addToHistory(
-            videoSelect.options[videoSelect.selectedIndex].text,
-            `${data.use_beep ? 'cb' + data.beep_frequency : 'cs'}_pending`,
-            'pending'
-        );
+        formData.append('custom_words', JSON.stringify(Array.from(censorWords)));
+        formData.append('use_beep', document.getElementById('useBeep').checked);
+        formData.append('beep_frequency', beepFrequency.value);
         
-        fetch('/process', {
+        const endpoint = currentFile ? '/process_file' : '/process';
+        
+        fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Начинаем опрос статуса задачи
+                const historyItem = addToHistory(
+                    currentFile ? currentFile.name : videoSelect.options[videoSelect.selectedIndex].text,
+                    `${document.getElementById('useBeep').checked ? 'cb' + beepFrequency.value : 'cs'}_pending`,
+                    'pending'
+                );
                 pollTaskStatus(data.task_id, historyItem, modal);
             } else {
                 modal.close();
-                historyItem.status = 'cancelled';
-                updateHistoryUI();
                 M.toast({html: `Ошибка: ${data.error}`});
             }
         })
         .catch(error => {
             modal.close();
-            historyItem.status = 'cancelled';
-            updateHistoryUI();
             M.toast({html: 'Произошла ошибка при обработке'});
         });
     });
@@ -311,6 +307,116 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     updateHistoryUI();
+
+    // Mode switching
+    const modeTabs = document.querySelectorAll('.mode-tab:not(.disabled)');
+    const modeContents = document.querySelectorAll('.mode-content');
+    
+    modeTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const mode = tab.dataset.mode;
+            
+            // Update tabs
+            modeTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Hide all contents with animation
+            modeContents.forEach(content => {
+                content.classList.add('hiding');
+            });
+            
+            // Show selected content after animation
+            setTimeout(() => {
+                modeContents.forEach(content => {
+                    content.style.display = 'none';
+                    content.classList.remove('hiding');
+                });
+                document.getElementById(`${mode}Mode`).style.display = 'block';
+            }, 200);
+            
+            // Reset options
+            commonOptions.style.display = 'none';
+        });
+    });
+
+    // Initialize tooltips
+    M.Tooltip.init(document.querySelectorAll('.tooltipped'));
+
+    // File Upload Handling
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const selectFileBtn = document.getElementById('selectFileBtn');
+    const fileDetails = document.getElementById('fileDetails');
+    const fileName = document.getElementById('fileName');
+    const removeFile = document.getElementById('removeFile');
+    let currentFile = null;
+
+    // Drag and drop handlers
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('drag-over');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('drag-over');
+        });
+    });
+
+    dropZone.addEventListener('drop', handleDrop);
+    selectFileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+    removeFile.addEventListener('click', resetFileUpload);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        handleFile(file);
+    }
+
+    function handleFileSelect(e) {
+        const file = e.target.files[0];
+        handleFile(file);
+    }
+
+    function handleFile(file) {
+        if (file && file.type.startsWith('audio/')) {
+            currentFile = file;
+            dropZone.style.display = 'none';
+            fileDetails.style.display = 'flex';
+            fileName.textContent = file.name;
+            showOptions();
+        } else {
+            M.toast({html: 'Пожалуйста, выберите аудио файл'});
+        }
+    }
+
+    function resetFileUpload() {
+        currentFile = null;
+        fileInput.value = '';
+        dropZone.style.display = 'block';
+        fileDetails.style.display = 'none';
+        commonOptions.style.display = 'none';
+    }
+
+    function showOptions() {
+        commonOptions.style.display = 'block';
+        commonOptions.style.opacity = '0';
+        requestAnimationFrame(() => {
+            commonOptions.style.opacity = '1';
+        });
+    }
 });
 
 // Константы и функци истории

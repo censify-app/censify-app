@@ -1,88 +1,97 @@
 import threading
-import queue
 import uuid
-from typing import Dict, Any
-import time
-from config import Config
+import queue
+import logging
 
-class TaskStatus:
-    def __init__(self):
-        self.state = 'PENDING'
-        self.result = None
-        self.error = None
-
-class TaskThread(threading.Thread):
-    def __init__(self, task_id, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.task_id = task_id
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class TaskQueue:
-    def __init__(self, num_workers=Config.TASK_QUEUE_WORKERS):
-        self.task_queue = queue.Queue()
-        self.tasks: Dict[str, TaskStatus] = {}
+    def __init__(self, num_workers=3):
+        self.queue = queue.Queue()
+        self.tasks = {}
         self.workers = []
+        self.num_workers = num_workers
+        self._start_workers()
         
-        # Запускаем воркеры
-        for _ in range(num_workers):
-            worker = TaskThread(task_id=None, target=self._worker_loop, daemon=True)
+    def _start_workers(self):
+        """Запускает рабочие потоки"""
+        for _ in range(self.num_workers):
+            worker = threading.Thread(target=self._worker_loop, daemon=True)
             worker.start()
             self.workers.append(worker)
-    
+            
     def _worker_loop(self):
+        """Основной цикл рабочего потока"""
         while True:
             try:
                 # Получаем задачу из очереди
-                task_id, func, args, kwargs = self.task_queue.get()
-                
-                # Обновляем task_id текущего потока
-                threading.current_thread().task_id = task_id
-                task_status = self.tasks[task_id]
+                task_id, func, args, kwargs = self.queue.get()
+                logger.info(f"Processing task {task_id}")
                 
                 try:
+                    # Добавляем task_id к потоку для отслеживания состояния
+                    threading.current_thread().task_id = task_id
+                    
                     # Выполняем задачу
                     result = func(*args, **kwargs)
-                    task_status.result = result
-                    task_status.state = 'SUCCESS'
+                    logger.info(f"Task {task_id} completed with result: {result}")
+                    
+                    # Сохраняем результат
+                    self.tasks[task_id].update({
+                        'state': 'COMPLETED',
+                        'result': result
+                    })
+                    
                 except Exception as e:
-                    task_status.error = str(e)
-                    task_status.state = 'ERROR'
+                    logger.error(f"Task {task_id} failed with error: {str(e)}")
+                    self.tasks[task_id].update({
+                        'state': 'FAILED',
+                        'error': str(e)
+                    })
+                    
                 finally:
-                    # Очищаем task_id потока
-                    threading.current_thread().task_id = None
-                
+                    self.queue.task_done()
+                    
             except Exception as e:
-                print(f"Worker error: {e}")
-            finally:
-                self.task_queue.task_done()
-    
-    def add_task(self, func, *args, **kwargs) -> str:
-        # Создаем ID задачи
+                logger.error(f"Worker loop error: {str(e)}")
+                
+    def add_task(self, func, *args, **kwargs):
+        """Добавляет новую задачу в очередь"""
         task_id = str(uuid.uuid4())
+        logger.info(f"Adding new task {task_id}")
         
-        # Создаем статус задачи
-        self.tasks[task_id] = TaskStatus()
+        # Создаем запись о за��аче
+        self.tasks[task_id] = {
+            'state': 'PENDING',
+            'result': None,
+            'error': None
+        }
         
         # Добавляем задачу в очередь
-        self.task_queue.put((task_id, func, args, kwargs))
-        
+        self.queue.put((task_id, func, args, kwargs))
         return task_id
-    
-    def get_task_status(self, task_id: str) -> Dict[str, Any]:
+        
+    def get_task_status(self, task_id):
+        """Возвращает статус задачи"""
         if task_id not in self.tasks:
             return {'success': False, 'error': 'Task not found'}
             
-        task_status = self.tasks[task_id]
+        task = self.tasks[task_id]
         
-        if task_status.state == 'SUCCESS':
-            return task_status.result
-        elif task_status.state == 'ERROR':
-            return {'success': False, 'error': task_status.error}
+        if task['state'] == 'COMPLETED':
+            return task['result']
+        elif task['state'] == 'FAILED':
+            return {'success': False, 'error': task['error']}
         else:
-            return {'success': True, 'state': task_status.state}
-    
-    def update_task_state(self, task_id: str, state: str):
+            return {'success': True, 'state': task['state']}
+            
+    def update_task_state(self, task_id, state):
+        """Обновляет состояние задачи"""
         if task_id in self.tasks:
-            self.tasks[task_id].state = state
+            logger.info(f"Updating task {task_id} state to {state}")
+            self.tasks[task_id]['state'] = state
 
-# Глобальный экземпляр очереди задач
+# Создаем глобальный экземпляр очереди задач
 task_queue = TaskQueue()
