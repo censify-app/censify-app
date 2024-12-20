@@ -497,11 +497,12 @@ historyToggle.addEventListener('click', () => {
     historyToggle.querySelector('i').textContent = isVisible ? 'close' : 'history';
 });
 
-// Закрывать историю при клике вне её области
+// Обновляем обработчик кликов, добавляя проверку на клик по кнопкам внутри истории
 document.addEventListener('click', (e) => {
-    if (historySidebar.classList.contains('visible') &&
-        !historySidebar.contains(e.target) &&
-        !historyToggle.contains(e.target)) {
+    if (historySidebar.classList.contains('visible') && 
+        !historySidebar.contains(e.target) && 
+        !historyToggle.contains(e.target) &&
+        !e.target.closest('.btn-floating')) { // Игнорируем клики по кнопкам
         historySidebar.classList.remove('visible');
         historyToggle.querySelector('i').textContent = 'history';
     }
