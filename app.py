@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, send_file
-from censify import YouTubeDownloader, Censor, ProfanityLoader
+from censify import YouTubeDownloader, Censor, ProfanityLoader, GPUCensor
+from config import Config
 import os
 import json
 from task_queue import task_queue
@@ -8,9 +9,8 @@ import hashlib
 
 app = Flask(__name__)
 
-# Создаем директорию для песен при запуске приложения
-SONGS_DIR = os.path.join(os.path.dirname(__file__), 'songs')
-os.makedirs(SONGS_DIR, exist_ok=True)
+# Инициализация директорий при запуске
+Config.init_dirs()
 
 def process_audio_task(video_url, custom_words, use_beep, beep_frequency, output_dir):
     """Функция обработки аудио для выполнения в отдельном потоке"""
@@ -19,7 +19,8 @@ def process_audio_task(video_url, custom_words, use_beep, beep_frequency, output
         
         # Инициализация компонентов
         downloader = YouTubeDownloader()
-        censor = Censor()
+        # Выбор цензора в зависимости от конфигурации
+        censor = GPUCensor(model_name=Config.WHISPER_MODEL) if Config.USE_GPU else Censor()
         profanity_loader = ProfanityLoader()
         
         # Скачивание аудио
@@ -103,7 +104,7 @@ def process():
             custom_words,
             use_beep,
             beep_frequency,
-            SONGS_DIR
+            Config.SONGS_DIR
         )
         
         return jsonify({
@@ -122,7 +123,7 @@ def get_task_status(task_id):
 def download(filename):
     try:
         return send_file(
-            os.path.join(SONGS_DIR, filename),
+            os.path.join(Config.SONGS_DIR, filename),
             as_attachment=True,
             download_name=filename
         )
@@ -130,4 +131,4 @@ def download(filename):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=False, port=5000)
+    app.run(debug=Config.FLASK_DEBUG, port=Config.FLASK_PORT)

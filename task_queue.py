@@ -3,6 +3,7 @@ import queue
 import uuid
 from typing import Dict, Any
 import time
+from config import Config
 
 class TaskStatus:
     def __init__(self):
@@ -16,7 +17,7 @@ class TaskThread(threading.Thread):
         self.task_id = task_id
 
 class TaskQueue:
-    def __init__(self, num_workers=3):
+    def __init__(self, num_workers=Config.TASK_QUEUE_WORKERS):
         self.task_queue = queue.Queue()
         self.tasks: Dict[str, TaskStatus] = {}
         self.workers = []
