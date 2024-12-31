@@ -246,15 +246,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Вспомогательные функции
     function searchVideos(query) {
-        fetch('/search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({query})
+        fetch(`/search?query=${encodeURIComponent(query)}`, {
+            method: 'GET'
         })
         .then(response => response.json())
         .then(data => {
             searchProgress.style.display = 'none';
-            if (data.success) {
+            if (data.results) {
                 updateVideoSelect(data.results);
             } else {
                 M.toast({html: 'Ничего не найдено'});
@@ -263,7 +261,17 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             searchProgress.style.display = 'none';
             M.toast({html: 'Ошибка при поиске'});
+            console.error(error);
         });
+    }
+    
+    function formatDuration(seconds) {
+        if (!seconds) return "??:??";
+        // Преобразуем в целые числа
+        const totalSeconds = Math.floor(Number(seconds));
+        const minutes = Math.floor(totalSeconds / 60);
+        const remainingSeconds = totalSeconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
     
     function showVideoOption(url) {
@@ -276,11 +284,42 @@ document.addEventListener('DOMContentLoaded', function() {
         videoSelect.innerHTML = '<option value="" disabled selected>Выберите видео</option>';
         results.forEach(video => {
             const option = document.createElement('option');
-            option.value = video.link;
-            option.innerHTML = `
-                <img src="${video.thumbnail}" alt="thumbnail" style="width: 50px; height: auto; vertical-align: middle; margin-right: 10px;">
-                ${video.title} (${video.duration}) - ${video.channel.name}
-            `;
+            option.value = video.url;
+            
+            // Создаем контейнер для превью и информации
+            const optionContent = document.createElement('div');
+            optionContent.style.display = 'flex';
+            optionContent.style.alignItems = 'center';
+            optionContent.style.gap = '10px';
+            
+            // Добавляем превью только если оно есть
+            if (video.thumbnail) {
+                const img = document.createElement('img');
+                img.src = video.thumbnail;
+                img.alt = 'preview';
+                img.style.width = '120px';
+                img.style.height = '68px';
+                img.style.objectFit = 'cover';
+                optionContent.appendChild(img);
+            }
+            
+            // Добавляем текстовую информацию
+            const textContent = document.createElement('div');
+            textContent.style.flex = '1';
+            
+            const titleSpan = document.createElement('div');
+            titleSpan.textContent = video.title;
+            titleSpan.style.fontWeight = 'bold';
+            textContent.appendChild(titleSpan);
+            
+            const infoSpan = document.createElement('div');
+            infoSpan.style.fontSize = '0.9em';
+            infoSpan.style.color = '#666';
+            infoSpan.textContent = `${video.duration} • ${video.channel}`;
+            textContent.appendChild(infoSpan);
+            
+            optionContent.appendChild(textContent);
+            option.appendChild(optionContent);
             videoSelect.appendChild(option);
         });
         
@@ -516,7 +555,7 @@ document.addEventListener('click', (e) => {
     if (historySidebar.classList.contains('visible') && 
         !historySidebar.contains(e.target) && 
         !historyToggle.contains(e.target) &&
-        !e.target.closest('.btn-floating')) { // Игнорируем клики по кнопк��м
+        !e.target.closest('.btn-floating')) { // Игнорируем клики по кнопкам
         historySidebar.classList.remove('visible');
         historyToggle.querySelector('i').textContent = 'history';
     }

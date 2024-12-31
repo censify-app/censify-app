@@ -24,6 +24,14 @@ class Config:
     FLASK_DEBUG = False
     FLASK_PORT = 5000
     
+    # Настройки загрузки YouTube
+    YOUTUBE_DOWNLOAD_MODE = 'proxy'  # 'direct' или 'proxy'
+    YOUTUBE_PROXY_SERVER = {
+        'host': '0.0.0.0',  # IP адрес прокси-сервера
+        'port': 8888,              # Порт прокси-сервера
+        'protocol': 'http'         # Протокол (http или https)
+    }
+    
     @classmethod
     def init_dirs(cls):
         """Инициализация необходимых директорий"""

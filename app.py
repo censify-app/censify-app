@@ -26,7 +26,7 @@ def process_audio_task(source, custom_words, use_beep, beep_frequency, output_di
         censor = GPUCensor(model_name=Config.WHISPER_MODEL) if Config.USE_GPU else Censor()
         profanity_loader = ProfanityLoader()
         
-        # Определяем, это URL или локальный фай��
+        # Определяем, это URL или локальный файл
         source_path = Path(source)
         is_local_file = source_path.exists()
         logger.info(f"Source is {'local file' if is_local_file else 'URL'}")
@@ -120,19 +120,16 @@ def process_audio_task(source, custom_words, use_beep, beep_frequency, output_di
 def index():
     return render_template('index.html')
 
-@app.route('/search', methods=['POST'])
+@app.route('/search', methods=['GET'])
 def search():
-    query = request.json.get('query')
+    query = request.args.get('query')
     downloader = YouTubeDownloader()
     
     try:
         results = downloader.search_videos(query, limit=5)
-        # Добавляем URL превью к каждому результату
-        for result in results:
-            result['thumbnail'] = result['thumbnails'][0]['url']
-        return jsonify({'success': True, 'results': results})
+        return jsonify({'results': results})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/process', methods=['POST'])
 def process():
