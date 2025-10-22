@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const customWordsTags = document.getElementById('customWordsTags');
     const historyToggle = document.getElementById('historyToggle');
     const historySidebar = document.getElementById('historySidebar');
+    const commonOptions = document.getElementById('commonOptions');
     
-    // Инициализация компонентов Material
+    // Инициализация компонентв Material
     M.Modal.init(document.querySelectorAll('.modal'), {
         dismissible: false, // Запрещаем закрытие по клику вне окна
         opacity: 0.5, // Прозрачность оверлея
@@ -92,12 +93,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Показ опций при выборе видео
     if (videoSelect) {
         videoSelect.addEventListener('change', function() {
-            if (this.value && options) {
-                options.style.display = 'block';
-                options.style.opacity = '0';
-                requestAnimationFrame(() => {
-                    options.style.opacity = '1';
-                });
+            if (this.value) {
+                showOptions();
             }
         });
     }
@@ -154,58 +151,108 @@ document.addEventListener('DOMContentLoaded', function() {
         const modal = M.Modal.getInstance(progressModal);
         modal.open();
         
-        const data = {
-            video_url: videoSelect.value,
-            custom_words: Array.from(censorWords),
-            use_beep: document.getElementById('useBeep').checked,
-            beep_frequency: parseInt(beepFrequency.value)
-        };
+        let requestData;
+        let headers = {};
         
-        const historyItem = addToHistory(
-            videoSelect.options[videoSelect.selectedIndex].text,
-            `${data.use_beep ? 'cb' + data.beep_frequency : 'cs'}_pending`,
-            'pending'
-        );
+        if (currentFile) {
+            // Для файлов используем FormData
+            requestData = new FormData();
+            requestData.append('file', currentFile);
+            requestData.append('custom_words', JSON.stringify(Array.from(censorWords)));
+            requestData.append('use_beep', document.getElementById('useBeep').checked);
+            requestData.append('beep_frequency', beepFrequency.value);
+        } else {
+            // Для YouTube используем JSON
+            headers = {
+                'Content-Type': 'application/json'
+            };
+            requestData = JSON.stringify({
+                video_url: videoSelect.value,
+                custom_words: Array.from(censorWords),
+                use_beep: document.getElementById('useBeep').checked,
+                beep_frequency: parseInt(beepFrequency.value)
+            });
+        }
         
-        fetch('/process', {
+        const endpoint = currentFile ? '/process_file' : '/process';
+        
+        fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            headers: headers,
+            body: requestData
         })
         .then(response => response.json())
         .then(data => {
-            modal.close();
             if (data.success) {
-                historyItem.filename = data.file;
-                historyItem.status = 'success';
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-                updateHistoryUI();
-                window.location.href = `/download/${data.file}`;
+                const historyItem = addToHistory(
+                    currentFile ? currentFile.name : videoSelect.options[videoSelect.selectedIndex].text,
+                    `${document.getElementById('useBeep').checked ? 'cb' + beepFrequency.value : 'cs'}_pending`,
+                    'pending'
+                );
+                pollTaskStatus(data.task_id, historyItem, modal);
             } else {
-                historyItem.status = 'cancelled';
-                updateHistoryUI();
+                modal.close();
                 M.toast({html: `Ошибка: ${data.error}`});
             }
         })
         .catch(error => {
             modal.close();
-            historyItem.status = 'cancelled';
-            updateHistoryUI();
             M.toast({html: 'Произошла ошибка при обработке'});
+            console.error(error);
         });
     });
-    
+
+    function pollTaskStatus(taskId, historyItem, modal) {
+        fetch(`/task/${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.state === 'DOWNLOADING') {
+                        modal.el.querySelector('h4').textContent = 'Скачивание...';
+                    } else if (data.state === 'LOADING_WORDS') {
+                        modal.el.querySelector('h4').textContent = 'Загрузка слов...';
+                    } else if (data.state === 'CENSORING') {
+                        modal.el.querySelector('h4').textContent = 'Цензурирование...';
+                    } else if (data.state === 'CLEANING') {
+                        modal.el.querySelector('h4').textContent = 'Завершение...';
+                    }
+                    
+                    if (data.file) {
+                        // Задача завершена
+                        modal.close();
+                        historyItem.filename = data.file;
+                        historyItem.status = 'success';
+                        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                        updateHistoryUI();
+                        window.location.href = `/download/${data.file}`;
+                    } else {
+                        // Продолжаем опрос
+                        setTimeout(() => pollTaskStatus(taskId, historyItem, modal), 1000);
+                    }
+                } else {
+                    modal.close();
+                    historyItem.status = 'cancelled';
+                    updateHistoryUI();
+                    M.toast({html: `Ошибка: ${data.error}`});
+                }
+            })
+            .catch(error => {
+                modal.close();
+                historyItem.status = 'cancelled';
+                updateHistoryUI();
+                M.toast({html: 'Произошла ошибка при проверке статуса'});
+            });
+    }
+
     // Вспомогательные функции
     function searchVideos(query) {
-        fetch('/search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({query})
+        fetch(`/search?query=${encodeURIComponent(query)}`, {
+            method: 'GET'
         })
         .then(response => response.json())
         .then(data => {
             searchProgress.style.display = 'none';
-            if (data.success) {
+            if (data.results) {
                 updateVideoSelect(data.results);
             } else {
                 M.toast({html: 'Ничего не найдено'});
@@ -214,7 +261,17 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             searchProgress.style.display = 'none';
             M.toast({html: 'Ошибка при поиске'});
+            console.error(error);
         });
+    }
+    
+    function formatDuration(seconds) {
+        if (!seconds) return "??:??";
+        // Преобразуем в целые числа
+        const totalSeconds = Math.floor(Number(seconds));
+        const minutes = Math.floor(totalSeconds / 60);
+        const remainingSeconds = totalSeconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
     
     function showVideoOption(url) {
@@ -227,11 +284,42 @@ document.addEventListener('DOMContentLoaded', function() {
         videoSelect.innerHTML = '<option value="" disabled selected>Выберите видео</option>';
         results.forEach(video => {
             const option = document.createElement('option');
-            option.value = video.link;
-            option.innerHTML = `
-                <img src="${video.thumbnail}" alt="thumbnail" style="width: 50px; height: auto; vertical-align: middle; margin-right: 10px;">
-                ${video.title} (${video.duration}) - ${video.channel.name}
-            `;
+            option.value = video.url;
+            
+            // Создаем контейнер для превью и информации
+            const optionContent = document.createElement('div');
+            optionContent.style.display = 'flex';
+            optionContent.style.alignItems = 'center';
+            optionContent.style.gap = '10px';
+            
+            // Добавляем превью только если оно есть
+            if (video.thumbnail) {
+                const img = document.createElement('img');
+                img.src = video.thumbnail;
+                img.alt = 'preview';
+                img.style.width = '120px';
+                img.style.height = '68px';
+                img.style.objectFit = 'cover';
+                optionContent.appendChild(img);
+            }
+            
+            // Добавляем текстовую информацию
+            const textContent = document.createElement('div');
+            textContent.style.flex = '1';
+            
+            const titleSpan = document.createElement('div');
+            titleSpan.textContent = video.title;
+            titleSpan.style.fontWeight = 'bold';
+            textContent.appendChild(titleSpan);
+            
+            const infoSpan = document.createElement('div');
+            infoSpan.style.fontSize = '0.9em';
+            infoSpan.style.color = '#666';
+            infoSpan.textContent = `${video.duration} • ${video.channel}`;
+            textContent.appendChild(infoSpan);
+            
+            optionContent.appendChild(textContent);
+            option.appendChild(optionContent);
             videoSelect.appendChild(option);
         });
         
@@ -272,6 +360,116 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     updateHistoryUI();
+
+    // Mode switching
+    const modeTabs = document.querySelectorAll('.mode-tab:not(.disabled)');
+    const modeContents = document.querySelectorAll('.mode-content');
+    
+    modeTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const mode = tab.dataset.mode;
+            
+            // Update tabs
+            modeTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Hide all contents with animation
+            modeContents.forEach(content => {
+                content.classList.add('hiding');
+            });
+            
+            // Show selected content after animation
+            setTimeout(() => {
+                modeContents.forEach(content => {
+                    content.style.display = 'none';
+                    content.classList.remove('hiding');
+                });
+                document.getElementById(`${mode}Mode`).style.display = 'block';
+            }, 200);
+            
+            // Reset options
+            commonOptions.style.display = 'none';
+        });
+    });
+
+    // Initialize tooltips
+    M.Tooltip.init(document.querySelectorAll('.tooltipped'));
+
+    // File Upload Handling
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const selectFileBtn = document.getElementById('selectFileBtn');
+    const fileDetails = document.getElementById('fileDetails');
+    const fileName = document.getElementById('fileName');
+    const removeFile = document.getElementById('removeFile');
+    let currentFile = null;
+
+    // Drag and drop handlers
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('drag-over');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('drag-over');
+        });
+    });
+
+    dropZone.addEventListener('drop', handleDrop);
+    selectFileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+    removeFile.addEventListener('click', resetFileUpload);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        handleFile(file);
+    }
+
+    function handleFileSelect(e) {
+        const file = e.target.files[0];
+        handleFile(file);
+    }
+
+    function handleFile(file) {
+        if (file && file.type.startsWith('audio/')) {
+            currentFile = file;
+            dropZone.style.display = 'none';
+            fileDetails.style.display = 'flex';
+            fileName.textContent = file.name;
+            showOptions();
+        } else {
+            M.toast({html: 'Пожалуйста, выберите аудио файл'});
+        }
+    }
+
+    function resetFileUpload() {
+        currentFile = null;
+        fileInput.value = '';
+        dropZone.style.display = 'block';
+        fileDetails.style.display = 'none';
+        commonOptions.style.display = 'none';
+    }
+
+    function showOptions() {
+        commonOptions.style.display = 'block';
+        commonOptions.style.opacity = '0';
+        requestAnimationFrame(() => {
+            commonOptions.style.opacity = '1';
+        });
+    }
 });
 
 // Константы и функци истории
@@ -352,11 +550,12 @@ historyToggle.addEventListener('click', () => {
     historyToggle.querySelector('i').textContent = isVisible ? 'close' : 'history';
 });
 
-// Закрывать историю при клике вне её области
+// Обновляем обработчик кликов, добавляя проверку на клик по кнопкам внутри истории
 document.addEventListener('click', (e) => {
-    if (historySidebar.classList.contains('visible') &&
-        !historySidebar.contains(e.target) &&
-        !historyToggle.contains(e.target)) {
+    if (historySidebar.classList.contains('visible') && 
+        !historySidebar.contains(e.target) && 
+        !historyToggle.contains(e.target) &&
+        !e.target.closest('.btn-floating')) { // Игнорируем клики по кнопкам
         historySidebar.classList.remove('visible');
         historyToggle.querySelector('i').textContent = 'history';
     }

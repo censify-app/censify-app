@@ -754,3 +754,113 @@ h4.center-align {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* Mode Selector Styles */
+.mode-selector {
+    margin-bottom: 24px;
+}
+
+.mode-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 8px;
+    background: var(--md-sys-color-surface-variant);
+    border-radius: 16px;
+    margin: 0 auto;
+    width: fit-content;
+}
+
+.mode-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: all 0.2s ease;
+}
+
+.mode-tab:hover:not(.disabled) {
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
+}
+
+.mode-tab.active {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+.mode-tab.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* File Upload Styles */
+.file-upload-container {
+    margin: 24px 0;
+}
+
+.file-upload-area {
+    border: 2px dashed var(--md-sys-color-outline);
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    transition: all 0.2s ease;
+    background: var(--md-sys-color-surface-variant);
+}
+
+.file-upload-area.drag-over {
+    border-color: var(--md-sys-color-primary);
+    background: var(--md-sys-color-primary-container);
+}
+
+.file-upload-area i {
+    font-size: 48px;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-bottom: 16px;
+}
+
+.file-upload-area p {
+    margin: 8px 0;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.file-types {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.file-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: var(--md-sys-color-surface-variant);
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-info i {
+    color: var(--md-sys-color-primary);
+}
+
+#removeFile {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Mode Content Transitions */
+.mode-content {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.mode-content.hiding {
+    opacity: 0;
+}
+

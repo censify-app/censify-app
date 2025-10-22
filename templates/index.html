@@ -3,34 +3,79 @@
 {% block content %}
 <div class="row">
     <div class="col s12">
-        <div class="card-panel">
-            <h4 class="center-align">Censify YouTube</h4>
-            
-            <div class="row">
-                <div class="input-field col s10">
-                    <i class="material-icons prefix">search</i>
-                    <input type="text" id="search" class="validate">
-                    <label for="search">Поиск песни или URL YouTube</label>
-                </div>
-                <div class="col s2" style="padding-top: 20px;">
-                    <button class="btn waves-effect waves-light deep-purple" id="findBtn">
-                        <i class="material-icons">search</i>
-                    </button>
-                </div>
+        <div class="mode-selector">
+            <div class="mode-tabs">
+                <a href="#" class="mode-tab active" data-mode="youtube">
+                    <i class="material-icons">play_circle_filled</i>
+                    YouTube
+                </a>
+                <a href="#" class="mode-tab" data-mode="file">
+                    <i class="material-icons">file_upload</i>
+                    File Upload
+                </a>
+                <a href="#" class="mode-tab disabled tooltipped" data-position="bottom" data-tooltip="Coming soon...">
+                    <i class="material-icons">all_inclusive</i>
+                    Anything
+                </a>
             </div>
+        </div>
 
-            <div class="row" id="searchResults" style="display: none;">
-                <div class="col s12">
-                    <div class="input-field">
-                        <select id="videoSelect">
-                            <option value="" disabled selected>Выберите видео</option>
-                        </select>
-                        <label>Найденные видео</label>
+        <div class="card-panel">
+            <h4 class="center-align">Censify</h4>
+            
+            <!-- YouTube Mode -->
+            <div id="youtubeMode" class="mode-content">
+                <div class="row">
+                    <div class="input-field col s10">
+                        <i class="material-icons prefix">search</i>
+                        <input type="text" id="search" class="validate">
+                        <label for="search">Поиск песни на YouTube</label>
+                    </div>
+                    <div class="col s2" style="padding-top: 20px;">
+                        <button class="btn waves-effect waves-light deep-purple" id="findBtn">
+                            <i class="material-icons">search</i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row" id="searchResults" style="display: none;">
+                    <div class="col s12">
+                        <div class="input-field">
+                            <select id="videoSelect">
+                                <option value="" disabled selected>Выберите видео</option>
+                            </select>
+                            <label>Найденные видео</label>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="row" id="options" style="display: none;">
+            <!-- File Upload Mode -->
+            <div id="fileMode" class="mode-content" style="display: none;">
+                <div class="file-upload-container">
+                    <div class="file-upload-area" id="dropZone">
+                        <i class="material-icons">cloud_upload</i>
+                        <p>Перетащите аудио файл сюда или</p>
+                        <button class="btn waves-effect waves-light deep-purple" id="selectFileBtn">
+                            Выберите файл
+                        </button>
+                        <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+                        <p class="file-types">Поддерживаемые форматы: MP3, WAV, M4A, OGG</p>
+                    </div>
+                    <div class="file-details" id="fileDetails" style="display: none;">
+                        <div class="file-info">
+                            <i class="material-icons">audio_file</i>
+                            <span id="fileName"></span>
+                        </div>
+                        <button class="btn-flat waves-effect" id="removeFile">
+                            <i class="material-icons">close</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Options (единая секция для обоих режимов) -->
+            <div class="row" id="commonOptions" style="display: none;">
                 <div class="col s12">
                     <h5>Настройки цензуры</h5>
                     
